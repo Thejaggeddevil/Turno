@@ -338,13 +338,13 @@ fun StatsScreen(
             
             // Month labels on left side
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
                     .weight(1f)
-            ) {
+    ) {
                 // Month labels on left side
-                Column(
-                    modifier = Modifier
+        Column(
+            modifier = Modifier
                         .align(Alignment.CenterStart)
                         .padding(end = 4.dp)
                 ) {
@@ -354,7 +354,7 @@ fun StatsScreen(
                     
                     monthLabels.forEachIndexed { index, month ->
                         Spacer(modifier = Modifier.height(if (index == 0) 12.dp else cellHeight * 6.2f))
-                        Text(
+            Text(
                             text = month,
                             color = Color.Gray,
                             fontSize = 10.sp

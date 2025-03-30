@@ -1,5 +1,7 @@
 package com.mansi.focusway.ui.todo
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,13 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.mansi.focusway.data.database.TaskEntity
-import com.mansi.focusway.ui.navigation.Routes
-import com.mansi.focusway.ui.theme.FocusWayTheme
-import com.mansi.focusway.ui.theme.NeonCyan
-import com.mansi.focusway.utils.formatDate
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,148 +48,196 @@ fun TodoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tasks") },
-                actions = {
-                    IconButton(onClick = { viewModel.refreshTasks() }) {
+                title = { Text("To-do list", fontWeight = FontWeight.Medium) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF121212),
+                    titleContentColor = Color.White
+                ),
+                navigationIcon = {
+                    IconButton(onClick = { /* Navigate back */ }) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
-                        )
-                    }
-                    IconButton(onClick = { /* Sort tasks */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Sort,
-                            contentDescription = "Sort Tasks"
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
                         )
                     }
                 }
             )
         },
         floatingActionButton = {
+            Column {
+                // Category + FAB
+                FloatingActionButton(
+                    onClick = { /* Add Category */ },
+                    containerColor = Color.White,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Category", color = Color.Black, fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "Add Category",
+                            tint = Color.Black
+                        )
+                    }
+                }
+                
+                // To-do list + FAB
             FloatingActionButton(
-                onClick = onAddTask,
-                containerColor = NeonCyan
-            ) {
+                    onClick = { 
+                        try {
+                            onAddTask()
+                        } catch (e: Exception) {
+                            Log.e("TodoScreen", "Failed to navigate to Add Task screen", e)
+                            Toast.makeText(context, "Could not open Add Task screen. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    containerColor = Color.White
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("To-do list", color = Color.Black, fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.width(8.dp))
                 Icon(
-                    imageVector = Icons.Default.Add,
+                            imageVector = Icons.Rounded.Add,
                     contentDescription = "Add Task",
                     tint = Color.Black
                 )
             }
         }
-    ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = NeonCyan)
             }
-        } else if (uiState.allTasks.isEmpty()) {
-            Box(
+        },
+        containerColor = Color(0xFF121212)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+            // Time info
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                Text(
+                    text = "00:00 - 00:00",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+                Text(
+                    text = "Sun, Mon, Wed, Fri",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
+            
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp),
-                        tint = Color.Gray.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "No tasks yet",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.Gray.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Tap + to add a new task",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray.copy(alpha = 0.5f)
-                    )
-                }
+                    CircularProgressIndicator(color = Color.White)
             }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // DAILY CATEGORY
                 item {
-                    Spacer(modifier = Modifier.height(8.dp))
+                        CategoryHeader(name = "Daily", onShowMore = {})
+                    }
                     
-                    Text(
-                        text = "Active Tasks",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                
-                if (uiState.activeTasks.isEmpty()) {
+                    // Daily tasks
                     item {
-                        Text(
-                            text = "No active tasks",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
-                } else {
-                    items(uiState.activeTasks) { task ->
                         TaskItem(
-                            task = task,
-                            onToggleCompletion = { viewModel.toggleTaskCompletion(task.id, !task.isCompleted) },
-                            onDelete = { viewModel.deleteTask(task) },
-                            onClick = { onEditTask(task.id) }
+                            color = Color(0xFF4CAF50),
+                            title = "Reading every day",
+                            timeSpent = "5h 30m",
+                            onToggleCompletion = {},
+                            onMoreClick = {}
                         )
                     }
-                }
-                
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
                     
-                    Text(
-                        text = "Completed Tasks",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                
-                if (uiState.completedTasks.isEmpty()) {
                     item {
-                        Text(
-                            text = "No completed tasks",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
-                } else {
-                    items(uiState.completedTasks) { task ->
                         TaskItem(
-                            task = task,
-                            onToggleCompletion = { viewModel.toggleTaskCompletion(task.id, !task.isCompleted) },
-                            onDelete = { viewModel.deleteTask(task) },
-                            onClick = { onEditTask(task.id) }
+                            color = Color(0xFF4CAF50),
+                            title = "Do cleaning",
+                            days = "Mon, Wed, Thu",
+                            time = "09:00 - 10:00",
+                            timeSpent = "5h 30m",
+                            onToggleCompletion = {},
+                            onMoreClick = {}
                         )
                     }
+                    
+                    // STUDY CATEGORY
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        CategoryHeader(name = "Upcoming", onShowMore = {})
                 }
                 
                 item {
-                    Spacer(modifier = Modifier.height(80.dp)) // For FAB spacing
+                        CategoryHeader(name = "Study", onShowMore = {})
+                    }
+                    
+                    // Study tasks
+                    item {
+                        TaskItem(
+                            color = Color(0xFFFF9800),
+                            title = "Foreign language",
+                            days = "Mon, Thu",
+                            time = "13:00 - 15:00",
+                            timeSpent = "5h 30m",
+                            onToggleCompletion = {},
+                            onMoreClick = {}
+                        )
+                    }
+                    
+                    item {
+                        TaskItem(
+                            color = Color(0xFFFF9800),
+                            title = "Grammar",
+                            days = "Mon, Wed, Fri",
+                            time = "13:00 - 14:00",
+                            timeSpent = "5h 30m",
+                            onToggleCompletion = {},
+                            onMoreClick = {}
+                        )
+                    }
+                    
+                    // EXERCISE CATEGORY
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        CategoryHeader(name = "Exercise", onShowMore = {})
+                    }
+                    
+                    // Exercise tasks
+                    item {
+                        TaskItem(
+                            color = Color(0xFF2196F3),
+                            title = "Weight Training",
+                            days = "Tue, Thu, Sat",
+                            time = "20:00 - 21:00",
+                            timeSpent = "5h 30m",
+                            onToggleCompletion = {},
+                            onMoreClick = {}
+                        )
+                    }
+                    
+                    // Add spacer at bottom for FAB
+                item {
+                        Spacer(modifier = Modifier.height(140.dp))
+                    }
                 }
             }
         }
@@ -200,176 +245,122 @@ fun TodoScreen(
 }
 
 @Composable
-private fun TaskItem(
-    task: TaskEntity,
-    onToggleCompletion: () -> Unit = {},
-    onDelete: () -> Unit = {},
-    onClick: () -> Unit = {}
+fun CategoryHeader(
+    name: String,
+    onShowMore: () -> Unit
 ) {
-    // Determine color based on priority
-    val priorityColor = when (task.priority) {
-        0 -> Color(0xFF4CAF50) // Low - Green
-        1 -> Color(0xFFFF9800) // Medium - Orange
-        else -> Color(0xFFE91E63) // High - Pink
-    }
-    
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = name,
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+        
+        IconButton(onClick = onShowMore) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More Options",
+                tint = Color.Gray
+            )
+        }
+    }
+}
+
+@Composable
+fun TaskItem(
+    color: Color,
+    title: String,
+    days: String = "Everyday",
+    time: String = "",
+    timeSpent: String,
+    onToggleCompletion: () -> Unit,
+    onMoreClick: () -> Unit,
+    isCompleted: Boolean = false
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+            .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Priority color indicator
+        // Color indicator
             Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(priorityColor)
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            // Checkbox for completion
-            Checkbox(
-                checked = task.isCompleted,
-                onCheckedChange = { onToggleCompletion() },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = NeonCyan,
-                    uncheckedColor = Color.Gray
-                )
-            )
-            
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            // Task details
+                .size(4.dp, 24.dp)
+                .background(color)
+        )
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        // Task content
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = task.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
-                    color = if (task.isCompleted) Color.Gray else Color.White
-                )
-                
-                if (task.description.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = task.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Schedule,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    
-                    Spacer(modifier = Modifier.width(4.dp))
-                    
-                    // Format and display creation date
-                    Text(
-                        text = formatDate(task.createdAt, "MMM dd"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    
-                    // Show due date if available
-                    if (task.dueDate != null) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Due: ${formatDate(task.dueDate, "MMM dd")}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (task.dueDate < System.currentTimeMillis() && !task.isCompleted)
-                                Color.Red.copy(alpha = 0.8f)
-                            else
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-                    
-                    // Show focus time if any
-                    if (task.totalFocusTime > 0) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Icon(
-                            imageVector = Icons.Default.Timer,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = NeonCyan.copy(alpha = 0.8f)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = formatFocusTime(task.totalFocusTime),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = NeonCyan.copy(alpha = 0.8f)
-                        )
-                    }
-                }
-            }
+                text = title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None
+            )
             
-            // Delete button
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Task",
-                    tint = Color.Gray
+            if (time.isNotEmpty()) {
+                Row {
+                    Text(
+                        text = time,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = days,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            } else {
+                Text(
+                    text = days,
+                    color = Color.Gray,
+                    fontSize = 12.sp
                 )
             }
+        }
+        
+        // Total time
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "TOTAL: $timeSpent",
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(8.dp))
+        
+        // More options
+        IconButton(onClick = onMoreClick) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More Options",
+                tint = Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
 
-// Helper function to format focus time
-private fun formatFocusTime(timeInMillis: Long): String {
-    val hours = timeInMillis / (1000 * 60 * 60)
-    val minutes = (timeInMillis / (1000 * 60)) % 60
-    
-    return when {
-        hours > 0 -> "${hours}h ${minutes}m"
-        minutes > 0 -> "${minutes}m"
-        else -> "<1m"
-    }
-}
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-private fun TodoScreenPreview() {
-    FocusWayTheme(darkTheme = true) {
+fun TodoScreenPreview() {
         TodoScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun TaskItemPreview() {
-    FocusWayTheme(darkTheme = true) {
-        TaskItem(
-            task = TaskEntity(
-                id = 1,
-                title = "Complete Math Assignment",
-                description = "Finish Chapter 5 exercises",
-                isCompleted = false,
-                priority = 1,
-                dueDate = System.currentTimeMillis() + 86400000 // tomorrow
-            )
-        )
-    }
 } 

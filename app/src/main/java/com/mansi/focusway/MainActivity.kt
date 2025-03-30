@@ -309,7 +309,14 @@ fun MainApp(onError: (String, Exception?) -> Unit = { _, _ -> }) {
             composable(Routes.TIMER) {
                 TimerScreen(
                     onNavigateToTodo = { navController.navigate(Routes.TODO) },
-                    onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
+                    onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
+                    onNavigateToGroupStudy = { 
+                        try {
+                            navController.navigate(Routes.GROUP_STUDY)
+                        } catch (e: Exception) {
+                            onError("Failed to navigate to Group Study", e as? Exception)
+                        }
+                    }
                 )
             }
             
@@ -326,11 +333,30 @@ fun MainApp(onError: (String, Exception?) -> Unit = { _, _ -> }) {
             }
             
             composable(Routes.ADD_TASK) {
+                Log.d("Navigation", "Attempting to load AddTaskScreen")
                 AddTaskScreen(
                     onNavigateBack = {
-                        navController.popBackStack()
+                        try {
+                            navController.popBackStack()
+                        } catch (e: Exception) {
+                            Log.e("Navigation", "Error navigating back from AddTaskScreen", e)
+                            // Try alternative navigation if popBackStack fails
+                            navController.navigate(Routes.TODO)
+                        }
                     }
                 )
+                
+                // Add error handling via LaunchedEffect
+                LaunchedEffect(key1 = Unit) {
+                    try {
+                        // Just to check if the screen is loaded correctly
+                        Log.d("Navigation", "AddTaskScreen LaunchedEffect executed")
+                    } catch (e: Exception) {
+                        Log.e("Navigation", "Error in AddTaskScreen LaunchedEffect", e)
+                        // Handle serious errors by navigating away
+                        navController.navigate(Routes.TODO)
+                    }
+                }
             }
             
             composable(

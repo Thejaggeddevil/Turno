@@ -60,6 +60,7 @@ import com.mansi.focusway.ui.settings.SettingsViewModel
 fun TimerScreen(
     onNavigateToTodo: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToGroupStudy: () -> Unit = {},
     viewModel: TimerViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -271,15 +272,15 @@ fun TimerScreen(
                 )
                 
                 Row {
-                    // Premium/Star icon
-                    IconButton(onClick = { /* Premium feature */ }) {
+                    // Group Study icon - navigate to collaboration screen
+                    IconButton(onClick = { onNavigateToGroupStudy() }) {
                         Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Premium",
-                            tint = Color.Yellow
+                            imageVector = Icons.Default.Group,
+                            contentDescription = "Group Study",
+                            tint = Color.White
                         )
                     }
-                    
+
                     // ToDo list icon
                     IconButton(onClick = { onNavigateToTodo() }) {
                         Icon(
@@ -659,7 +660,8 @@ private fun TimerScreenPreview() {
     FocusWayTheme(darkTheme = true) {
         TimerScreen(
             onNavigateToTodo = {},
-            onNavigateToSettings = {}
+            onNavigateToSettings = {},
+            onNavigateToGroupStudy = {}
         )
     }
 }
@@ -676,7 +678,8 @@ private fun TimerScreenFullPreview() {
     FocusWayTheme(darkTheme = true) {
         TimerScreen(
             onNavigateToTodo = {},
-            onNavigateToSettings = {}
+            onNavigateToSettings = {},
+            onNavigateToGroupStudy = {}
         )
     }
 }
@@ -756,13 +759,6 @@ private fun TopAppBarPreview() {
         TopAppBar(
             title = { Text("Timer") },
             actions = {
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Star, 
-                        contentDescription = "Premium",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
                 IconButton(onClick = { }) {
                     Icon(
                         imageVector = Icons.Default.Settings, 

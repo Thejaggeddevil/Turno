@@ -40,7 +40,7 @@ class StatsViewModel : ViewModel() {
             loadYearlyStats(calendar.get(Calendar.YEAR))
             calculateStreaks()
             loadTodayStats()
-            loadWeeklyStats()
+        loadWeeklyStats()
         }
     }
     
@@ -208,8 +208,8 @@ class StatsViewModel : ViewModel() {
             try {
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val today = dateFormat.format(Calendar.getInstance().time)
-                
-                // Get today's stats
+            
+            // Get today's stats
                 val todayStats = repository?.getStatsByDate(today)?.first()
                 
                 // Get today's sessions
@@ -217,8 +217,8 @@ class StatsViewModel : ViewModel() {
                 
                 _uiState.update { currentState ->
                     currentState.copy(
-                        todayFocusTime = todayStats?.totalFocusTime ?: 0L,
-                        todaySessionsCount = todayStats?.sessionsCount ?: 0,
+                todayFocusTime = todayStats?.totalFocusTime ?: 0L,
+                todaySessionsCount = todayStats?.sessionsCount ?: 0,
                         todayTasksCompleted = todayStats?.tasksCompleted ?: 0,
                         todaySessions = todaySessions
                     )

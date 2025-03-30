@@ -1,6 +1,7 @@
 package com.mansi.focusway.ui.todo
 
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,6 +44,9 @@ fun AddTaskScreen(
     onNavigateBack: () -> Unit = {},
     viewModel: TodoViewModel = viewModel()
 ) {
+    // Add debug logging
+    Log.d("AddTaskScreen", "AddTaskScreen composable is being rendered")
+    
     // State for task details
     var taskTitle by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Study") }
@@ -292,37 +296,21 @@ fun AddTaskScreen(
             }
             
             // Time section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Manage time",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Add Time",
-                    tint = Color.Gray,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable { /* Add time */ }
-                )
-            }
+            Text(
+                text = "Manage time",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
             
             // Time picker row
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                ) {
                 // Start time
                 Column {
                     Text(
@@ -340,7 +328,7 @@ fun AddTaskScreen(
                 
                 // End time
                 Column {
-                    Text(
+                        Text(
                         text = "End at",
                         color = Color.Gray,
                         fontSize = 12.sp,
@@ -355,45 +343,21 @@ fun AddTaskScreen(
             }
             
             // Date section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Date",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        Icons.Default.KeyboardArrowLeft,
-                        contentDescription = "Previous Date",
-                        tint = Color.Gray,
-                        modifier = Modifier.clickable { /* Previous date */ }
-                    )
-                    
-                    Text(
-                        text = selectedDate,
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                    
-                    Icon(
-                        Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Next Date",
-                        tint = Color.Gray,
-                        modifier = Modifier.clickable { /* Next date */ }
-                    )
-                }
-            }
+            Text(
+                text = "Date",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            // Simple date display
+            Text(
+                text = selectedDate,
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
             
             // Repeat section
             Row(
@@ -450,8 +414,8 @@ fun AddTaskScreen(
             
             // Day selection
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                     .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -492,13 +456,13 @@ fun AddTaskScreen(
                     .clickable { /* Set end date */ }
             )
             
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
                     .padding(bottom = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                 // Empty spacer to push following content to the right
                 Spacer(modifier = Modifier.weight(1f))
                 
@@ -536,8 +500,8 @@ fun AddTaskScreen(
                 }
                 
                 // Save button
-                Button(
-                    onClick = {
+            Button(
+                onClick = {
                         // Create task and save
                         viewModel.addTask(
                             title = taskTitle,
@@ -548,16 +512,16 @@ fun AddTaskScreen(
                             repeatDays = selectedDays.toList()
                         )
                         onNavigateBack()
-                    },
-                    modifier = Modifier
+                },
+                modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
                     shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                         containerColor = selectedColor,
-                        contentColor = Color.Black
-                    )
-                ) {
+                    contentColor = Color.Black
+                )
+            ) {
                     Text("Save", fontWeight = FontWeight.Bold)
                 }
             }
@@ -594,7 +558,7 @@ fun ColorOption(
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+            modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
             .background(colorValue)
@@ -612,35 +576,23 @@ fun TimePickerButton(
     time: String,
     onClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
+    Button(
+        onClick = onClick,
+            modifier = Modifier
             .width(120.dp)
-            .height(48.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF2C2C2C))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center
+            .height(48.dp),
+        shape = RoundedCornerShape(4.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF2C2C2C),
+            contentColor = Color.White
+        )
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = time,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-            
-            Icon(
-                Icons.Default.KeyboardArrowDown,
-                contentDescription = "Select Time",
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        Text(
+            text = time,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -652,7 +604,7 @@ fun DayButton(
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+            modifier = Modifier
             .size(36.dp)
             .clip(CircleShape)
             .background(if (isSelected) selectedColor else Color(0xFF2C2C2C))
