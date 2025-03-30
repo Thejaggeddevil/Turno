@@ -1,0 +1,163 @@
+package com.mansi.focusway
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.ShowChart
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.compose.ui.graphics.vector.ImageVector
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.mansi.focusway.ui.auth.AuthViewModel
+import com.mansi.focusway.ui.auth.LoginScreen
+import com.mansi.focusway.ui.auth.RegisterScreen
+import com.mansi.focusway.ui.flip.FlipTimerScreen
+import com.mansi.focusway.ui.navigation.Routes
+import com.mansi.focusway.ui.settings.SettingsViewModel
+import com.mansi.focusway.ui.settings.SettingsScreen
+import com.mansi.focusway.ui.study.StudyModeSelectionScreen
+import com.mansi.focusway.core.ui.TurnoTheme
+import com.mansi.focusway.core.ui.NeonCyan
+import com.mansi.focusway.ui.timer.TimerScreen
+import com.mansi.focusway.ui.todo.AddTaskScreen
+import com.mansi.focusway.ui.todo.TodoScreen
+import com.mansi.focusway.ui.stats.StatsScreen
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            // Get dark mode setting
+            val darkModeEnabled = SettingsViewModel.isDarkModeEnabled(this)
+            
+            TurnoTheme(darkTheme = darkModeEnabled) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MainApp()
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainApp() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Timer, contentDescription = "Timer") },
+                    label = { Text("Timer") },
+                    selected = currentRoute == Routes.TIMER,
+                    onClick = { navController.navigate(Routes.TIMER) }
+                )
+
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.List, contentDescription = "Tasks") },
+                    label = { Text("Tasks") },
+                    selected = currentRoute == Routes.TODO,
+                    onClick = { navController.navigate(Routes.TODO) }
+                )
+                
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.ShowChart, contentDescription = "Stats") },
+                    label = { Text("Stats") },
+                    selected = currentRoute == Routes.STATS,
+                    onClick = { navController.navigate(Routes.STATS) }
+                )
+                
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Group, contentDescription = "Groups") },
+                    label = { Text("Groups") },
+                    selected = false,
+                    onClick = { /* Navigate to Groups screen */ }
+                )
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = Routes.TIMER,
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable(Routes.TIMER) {
+                TimerScreen(
+                    onNavigateToTodo = { navController.navigate(Routes.TODO) },
+                    onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
+                )
+            }
+
+            composable(Routes.TODO) {
+                TodoScreen(
+                    onNavigateToTimer = { navController.navigate(Routes.TIMER) },
+                    onAddTask = { navController.navigate(Routes.ADD_TASK) }
+                )
+            }
+
+            composable(Routes.ADD_TASK) {
+                AddTaskScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToTimer = { navController.navigate(Routes.TIMER) }
+                )
+            }
+            
+            composable(Routes.STATS) {
+                StatsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogOut = { navController.navigate(Routes.LOGIN) }
+                )
+            }
+
+            composable(Routes.LOGIN) {
+                LoginScreen(
+                    onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
+                    onLoginSuccess = { navController.navigate(Routes.TIMER) }
+                )
+            }
+
+            composable(Routes.REGISTER) {
+                RegisterScreen(
+                    onNavigateToLogin = { navController.popBackStack() },
+                    onRegisterSuccess = { navController.navigate(Routes.TIMER) }
+                )
+            }
+        }
+    }
+}
